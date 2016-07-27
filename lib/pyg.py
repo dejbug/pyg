@@ -1,9 +1,24 @@
 import os
 import pygame, pygame.locals
-import abs
 
 
-@abs.Singleton
+def Singleton(cls):
+	@staticmethod
+	def __new(_cls, *args, **kwargs):
+		if not _cls._obj:
+			_cls._obj = super(cls, _cls).__new__(_cls)
+		else:
+			setattr(_cls, "__init__", lambda self, *args, **kwargs: None)
+
+		return _cls._obj
+
+	setattr(cls, "_obj", None)
+	setattr(cls, "__new__", __new)
+
+	return cls
+
+
+@Singleton
 class UserEventIndex(object):
 	def __init__(self):
 		self.nextIndex = pygame.USEREVENT
@@ -42,7 +57,7 @@ def UserEvent(cls):
 	return cls
 
 
-@abs.Singleton
+@Singleton
 class App(object):
 	UPDATE_TIMER_ID = "__update__"
 
@@ -97,8 +112,7 @@ class App(object):
 		return True
 
 	def onTimer(self, name, event):
-		if name == self.UPDATE_TIMER_ID:
-			return self.onUpdateTimer()
+		pass
 
 	def onQuitEvent(self, event):
 		self.running = False
@@ -139,13 +153,18 @@ class App(object):
 			handled = False
 
 			if event.type >= pygame.USEREVENT:
-				for k,v in self.timers.items():
-					if event.type == v:
-						result = self.onTimer(k, event)
-						update = update or result
+			
+				if event.type == self.UPDATE_TIMER_ID:
+					self.onUpdateTimer()
+				
+				else:
+					for k,v in self.timers.items():
+						if event.type == v:
+							result = self.onTimer(k, event)
+							update = update or result
 
-						handled = True
-						break
+							handled = True
+							break
 
 			elif event.type == pygame.locals.VIDEOEXPOSE:
 				update = True

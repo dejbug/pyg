@@ -224,6 +224,7 @@ class Array(object):
 		return self.__dict__[self._name].append(value)
 
 
+
 class CallbackManager(object):
 	def __init__(self):
 		self.callbacks = {}
